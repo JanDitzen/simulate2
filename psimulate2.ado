@@ -1,5 +1,5 @@
 *! parallelise simulate2
-*! Version 1.01 - 18.10.2019
+*! Version 1.03 - 27.02.2020
 *! by Jan Ditzen - www.jan.ditzen.net
 /* changelog
 To version 1.01
@@ -7,6 +7,14 @@ To version 1.01
 					- no batch file written anymore; support for MacOS
 					- added options nocls and processors to set max processors for Stata MP
 					- version 15 and simulate support
+	- 17.01.2020	- added seedstream option
+	- 21.01.2020	- fix if used in loops; added global to save seed ($psim2Seed)
+To version 1.02
+	- 30.01.2020	- added mata matrices copied over
+To version 1.03
+	- 27.02.2020	- improved behaviour for long lines in do files or programs
+					- warning message if no seed set
+
 
 */
 program psimulate2 , rclass
@@ -31,6 +39,7 @@ program psimulate2 , rclass
 						Parallel(string)	/// parallel options
 						NOCls				/// do not refresh windows
 						simulate			/// use simulate rather than simulate2
+						seedstream(integer 0) /// first seedstream
 		]
 		
 		local 0 `parallel'
@@ -45,7 +54,9 @@ program psimulate2 , rclass
 		if "`instance'" == "" {
 			local instance = 1
 		}
-		
+		if `seedstream' > 0 {
+			local seedstream = `seedstream' - 1
+		}
 		if "`temppath'" == "" {
 			local temppath `"`c(tmpdir)'"'
 		}
@@ -86,15 +97,23 @@ program psimulate2 , rclass
 			local exepath `"`r(exepath)'"'
 		}
 		
+		*** Copy mata matrices
+		local matamatsave = 0
+		cap erase "`temppath'/psim2_matamat.mmat"
+		
 		*** Process seed options
 		*** 1. neither frame nor dta used, then seed(seed rng seedstream)
 		*** 2. frame used -> save as dta; if rng and stream empty, use mt64s and instance
 		*** 3. dta used -> load as dta; if rng and stream empty, use mt64s and instance
-		*** 4. no seed set; set seed to current seed, rng to mt64s and stream instance
+		*** 4. no seed set; set seed to Stata default seed, rng to mt64s and stream instance
+		local seednote = 0
+		local resetseed = 0
 		if "`whichsim'" == "simulate2" {
+			local instseed = `inst' + `seedstream' 
 			if "`seed'" == "" {
 				*** case 4.
-					local seed `". mt64s \`inst'"'
+				local seednote = 1
+				local seed `". mt64s \`instseed'"'
 			}
 			else {
 				local 0 `seed'	
@@ -104,8 +123,17 @@ program psimulate2 , rclass
 				tokenize `anything'
 				
 				if "`1'" == "." | "`1'" == "_current" {
-					local 1 `c(rngstate)'
-					local 2 `c(rng_current)'
+					if "`1'" == "_current" {
+						local resetseed = 1
+					}
+					if "$psim2Seed" != "" {
+						local 1 "$psim2Seed"					
+					}
+					else {
+					
+						local 1 `c(rngstate)'
+						local 2 `c(rng_current)'
+					}
 					*local 3 `c(rngstream)'
 				}
 				
@@ -120,7 +148,7 @@ program psimulate2 , rclass
 						local 2 "mt64s"
 					}
 					if "`3'" == "" {
-						local 3 `"\`inst'"'
+						local 3 `"\`instseed'"'
 					}
 					local seed `"`1' `2' \`3'"'
 				}
@@ -154,6 +182,11 @@ program psimulate2 , rclass
 			local seedsave ""
 			local seed seed(`seed')
 		}
+		*** remove last saved seed from global
+		if "$psim2Seed" != "" {
+			macro drop psim2Seed		
+		}
+		
 		*** save dta
 		save "`temppath'/psim2_start", replace emptyok
 		
@@ -172,13 +205,13 @@ program psimulate2 , rclass
 		*** correct here commandline
 		forvalues inst = 1(1)`instance' {
 			local repsi = `repsavg' + (`inst'==1) * (`reps' - `repsavg'*`instance')			
-			
+			local instseed = `inst' + `seedstream' 
 			if "`whichsim'" == "simulate2" {
 				psim2_WriteDofile 	`exp_list' , ///
 									/// sim2 options
 									saving("`temppath'psim2_results_`inst'", replace) reps(`repsi')  ///
 									perindicator(100, perindicpath(`"`temppath'"') performid(`inst')) ///
-									seed("`seed'" "`seedstartop'") seedsave("`seedsave'")	///
+									seed("`seed'" "`seedstartop'") seedsave("`seedsave'") seedstream(`seedstream')	///
 									/// writeBatch options
 									id(`inst')  processors(`processors')  ///
 									startdta(psim2_start)  temppath(`temppath') ///
@@ -312,6 +345,10 @@ program psimulate2 , rclass
 			}
 			noi disp ""
 			noi disp as text "Current Time: `c(current_time)' - next refresh in " %tcSS.ss `sleeptime' " sec."
+			if `seednote' == 1 {
+				noi disp as text "No seed set. If psimulate is used in a loop, "
+				noi disp as text "all iterations of the loop will have the Stata default seed."
+			}
 			sleep `sleeptime'
 		}
 		noi disp ""
@@ -375,12 +412,17 @@ program psimulate2 , rclass
 					save `"`anything'"', replace
 				}
 			}
-			mata st_local("last_seed",p2sim_lastseed[1])
-			return local rngstate "`last_seed'"
+			
+			mata st_local("last_seed1",p2sim_lastseed[1])
+			return local rngstate "`last_seed1'"
 			mata st_local("last_seed",p2sim_lastseed[2])
 			return local rngseed_mt64s "`last_seed'"
 			mata st_local("p2sim_lastrng",p2sim_lastrng)
 			return local rng_current "`p2sim_lastrng'"
+			
+			if `resetseed' == 1 {		
+				global psim2Seed = "`last_seed1'"
+			}
 		}
 		
 end
@@ -392,7 +434,7 @@ program define psim2_WriteDofile
 		local after `"`s(after)'"'
         local 0 `"`s(before)'"'
 
-		syntax [anything(name=explist equalok)], id(string) startdta(string) temppath(string) processors(integer) [simulate] *  
+		syntax [anything(name=explist equalok)], id(string) startdta(string) temppath(string) processors(integer) seedstream(integer)  [simulate] *  
 		
 		local sim2_options `options'
 		
@@ -447,6 +489,14 @@ program define psim2_WriteDofile
 			lmbuild lpsim2_matafunc , dir(`temppath') replace			
 			file write `dofile' `"adopath + `temppath'"' _n
 		}
+		
+		**** Mata programs
+		mata mata memory
+		if  `r(Nm)' > 0 {
+			mata mata matsave "`temppath'/psim2_matamat.mmat" *, replace
+			file write `dofile' `"mata mata matuse "`temppath'/psim2_matamat.mmat", replace"' _n
+		} 
+		
 		/*
 		**** do same for matrices
 		local allMatrices: all matrices
@@ -473,7 +523,7 @@ program define psim2_WriteDofile
 		}
 		else {
 			file write `dofile' `"set rng mt64s"' _n
-			file write `dofile' `"set rngstream `id'"' _n
+			file write `dofile' `"set rngstream `=`id'+`seedstream''"' _n
 			file write `dofile' `"simulate `explist' , `options' : `after'"' _n
 			file write `dofile'	`"mata p2sim_performance = -999, -999 "' _n
 			file write `dofile'	`"mata p2sim_lastrng = "\`c(rng_current)'""' _n
@@ -555,7 +605,7 @@ program define psim2_programlist, rclass
 	program dir
 	log close
 	set linesize `linesize'
-	tempname file
+	tempname file nextline
 	file open `file' using `"`temppath'/psim2_plog.log"' , read
     file read `file' line
 	while r(eof)==0 {
@@ -579,6 +629,7 @@ program define psim2_programlist, rclass
 		tempname dofilenew
 		file open `dofilenew' using "`temppath'/psim2_programs.do" , write text replace
 		
+		
 		foreach prog in `pnames' {
 			local linesize `c(linesize)'
 			set linesize 250
@@ -589,16 +640,15 @@ program define psim2_programlist, rclass
 			if _rc == 0 {
 				file open `file' using `"`temppath'/psim2_tmp_program.log"' , read
 				file read `file' line
-
+				
+				/// Open it the second time and shift one line down to check if line was cut off
+				file open `nextline' using `"`temppath'/psim2_tmp_program.log"' , read
+				file read `nextline' next
+				file read `nextline' next
+				
 				local inprog = -1
 				while r(eof)==0 {
-					
-					local endf ""
-					if ustrlen(`"`macval(line)'"') >= 250 {
-							local endf "///"
-					}
-					
-					
+								
 					gettoken 1 2 : line
 					if "`1'" != "." & "`1'" != "" & "`1'" != "=" & "`1'" != "-" {
 						local first = subinstr("`1'",".","",.)
@@ -612,51 +662,31 @@ program define psim2_programlist, rclass
 						}
 						else if `inprog'  == 1 {
 							local rest = subinstr(`"`macval(line)'"',"`1'","",.)
-							
-							if `"`lastword'"' != "" {
+							//// check if next line start with ">", then this needs to be added to current line
+							gettoken n1 n2: next
+							if regexm(`"`n1'"',">") == 1 {
+								local rest = strtrim(`"`rest'"')
+								local n2 = strtrim(`"`n2'"')
+								file write `dofilenew' `"`macval(rest)'`macval(n2)'"' _n
 								
-								local firstword = word(`"`macval(line)'"',1)
+								/// now shift both files one line down
+								file read `file' line
+								file read `nextline' next
 								
-								local s = 2
-								while regexm(`"`firstword'"',"[)]") == 0 & `s' <= wordcount(`"`macval(rest)'"') {
-									local firstwordi = word(`"`macval(rest)'"',`s')
-									local firstword `"`firstword' `firstwordi'"'
-									local s = `s' + 1	
-								}
-								local firstword = strltrim("`firstword'")
-								
-								local rest : list rest - firstword
-								
-								file write `dofilenew' `"`lastword'`firstword' bababa \\\ "' _n
-								
-								local lastword ""
-								local firstword ""
-								
-							}
-							
-							if "`endf'" != "" {
-								*** line too long, divide into two. check if parenthesis match
-								local lastword = words(`"`macval(rest)'"',-1)
-								local rest: list rest - lastword
-								
-							}
-							noi disp "*****************************************"
-							noi disp "`lastword'"
-							noi disp  "***************************************** *****************************************"
-							file write `dofilenew' `"`macval(rest)' `macval(endf)'"' _n
-							local endf ""
-							
+							} 
+							else {
+								file write `dofilenew' `"`macval(rest)'"' _n
+							}						
 						}
 						else {
 							local inprog = 0
 						}
 					}
-					
-
-					
+					file read `nextline' next
 					file read `file' line
 				}
 				file close `file'
+				file close `nextline'
 				** add end
 				file write `dofilenew' `"end"' _n
 				file write `dofilenew' `""' _n
