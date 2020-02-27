@@ -1,7 +1,7 @@
 {smcl}
 {hline}
 {hi:help simulate2}{right: v. 1.01 - 03. November 2019}
-{hi:help psimulate2}{right: v. 1.01 - 03. November 2019}
+{hi:help psimulate2}{right: v. 1.03 - 27. February 2020}
 {hline}
 {title:Title}
 
@@ -40,7 +40,8 @@
 {synopt:{help prefix_saving_option:{bf:{ul:sa}ving(}{it:filename}{bf:, ...)}}}save
         results to {it:filename}{p_end}
 {synopt:{opt seed(options)}}control of seed, see {help simulate2##optionsSeed: seed options}{p_end}
-{synopt:{opt seeds:ave(options)}}saves the used seeds, see {help simulate2##optionsSeedSave: saving seeds}{p_end}
+{synopt:{opt seeds:ave(options)}}saves the used seeds, see {help simulate2##SeedSaving: saving seeds}{p_end}
+{synopt:{opt seedstream(integer)}}starting seedstream, only {cmd:psimulate2}{p_end}
 {synoptline}
 {p2colreset}{...}	
 		
@@ -147,8 +148,10 @@ Any mata defind functions (see {stata mata mata memory}, {help mata mata memory:
 will be moved from the parent to the child instance.
 {cmd:psimulate2} will create a new {help mata lmbuild:mlib} file and store it
 in the temp folder and then set the temp folder as a new ado path.
+Mata matrices are moved from the parent to the child instance and 
+are saved in the temp folder.
 Globals and not permanently set ado paths are moved as well.
-It {bf:{ul:does not}} move frames, locals, matrices, scalars (both in Stata and mata)
+It {bf:{ul:does not}} move frames, locals, matrices (only Stata), scalars (only Stata)
 or values saved in e(), r() or s() from the parent to the child instances.
 
 {pstd}
@@ -156,6 +159,23 @@ or values saved in e(), r() or s() from the parent to the child instances.
 defined in option {cmd:seed()}.
 In this case each child instance is assigned its own {cmd:seedstream}. 
 This ensures that random number draws do not overlap.
+Parallel use of {cmd:psimulate2} is possible with different seedstreams for
+each machine.
+The option {cmd:seedstream()} sets the seedstream for the first instance.
+
+{marker psimLoop}{pstd}
+Care is required if {cmd:psimulate2} is used in loops.
+If no seed options are set, {cmd:psimulate2} will {ul:{bf:always}} use the 
+current Stata seed.
+However after {cmd:psimulate2} is completed it {ul:{bf:does not}}
+(and cannot) set the seed to the last seed from the simulation.
+Therefore random draws will be the same across iterations of the loop.
+To avoid this behaviour {cmd:seed(}{it:_current}{cmd:)} saves the last used 
+seed in a global. In all consecutive iterations of a loop, the global will be 
+picked up, the seed updated for the {cmd:simulate2} runs used and 
+after finishing the global will be updated again.
+This allows that draws across iterations of a loop differ. 
+
 
 {marker options}{...}
 {title:Options}
@@ -268,12 +288,22 @@ It then continues with observations 11 for draw number 2.
 
 
 {pmore}
-{cmd:seed(}{it:_current}{cmd:)} is a convenience option for {cmd:psimulate2}.
+{cmd:seed(}{it:_current}{cmd:)} allows the usage of {cmd:psimulate2} in loops.
 It uses the current seed options as a starting seed for {cmd:psimulate2}. 
-This allows {cmd:psimulate2} to be nested within loops and for each realisation
-in the loop different random draws are obtained. 
+This allows {cmd:psimulate2} to be nested within loops. 
+See {help simulate2##psimLoop: psimulate2 in loops}.
+
 
 {phang}
+{cmd:seedstream(}{it:integer}{cmd:)} is a convience option for {cmd:psimulate2}.
+It sets the inital seedstream number for the first instance. 
+For example if 3 instances are set ({cmd:parallel(3)}) and 
+{cmd:seedstream(4)} is used, then instance 1 will use seed stream number 4,
+instance 2 stream 5 and instance 3 stream 6. 
+This function allows the parallel use of {cmd:psimulate2} on multiple 
+computers with the same starting seed, but different seedstreams.
+
+{phang}{marker SeedSaving}
 {cmd:seedsave({it:filename}|{it:frame}), [frame append seednumber(#)]} Saves the seeds from the 
 beginning of each draw in a dataset defined by {it:filename}. 
 If option {cmd:frame} is used, it saves the seeds in a frame. 
@@ -448,6 +478,8 @@ I am grateful for his help.
 All remaining errors are my own.{p_end}
 
 {title:Change Log}
+{p 4}Version 1.01 to Version 1.02{p_end}
+{p 8 8}- Mata matrices and scalars are moved from parent to child instance as well.
 {p 4}Version 1.0 to Version 1.01{p_end}
 {p 8 8}- bug fixes in program to get exe name{p_end}
 {p 8 8}- no batch file written anymore; support for MacOS{p_end}
