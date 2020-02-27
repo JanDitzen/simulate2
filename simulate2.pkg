@@ -1,7 +1,7 @@
 v 3
 d simulate2 module enhancing and parallelising Stata's simulate functions. Version 1.1
 d Jan Ditzen, Heriot-Watt University
-d Distribution-Date:  20192611
+d Distribution-Date:  20202702
 f simulate2.ado
 f psimulate2.ado
 f simulate2.sthlp
