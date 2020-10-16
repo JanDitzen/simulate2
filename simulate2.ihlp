@@ -463,6 +463,13 @@ current seed of the parent instance as an initial seed for all child instances.
 Each child instance will still have a different seed stream to ensure the random 
 number draws are different.
 
+{marker knownproblems}{Known Problems and Issues}
+{p 8 8} - On some Windows installations the temporary folder is locked. In this 
+case Stata and psimulate2 cannot write any files in the temporary folder. 
+Option {cmd:temppath()} can be used to set an alternative temporary folder.{p_end}
+{p 8 8} - psimulate2 can crash if the temporary path or any other path it writes on
+is in a cloud storage folder from services such as Dropbox, OneDrive or Backup and Sync from 
+Google. A fix is to pause those services.{p_end}
 
 {marker about}{title:Author}
 
@@ -479,7 +486,7 @@ All remaining errors are my own.{p_end}
 
 {title:Change Log}
 {p 4}Version 1.01 to Version 1.02{p_end}
-{p 8 8}- Mata matrices and scalars are moved from parent to child instance as well.
+{p 8 8}- Mata matrices and scalars are moved from parent to child instance as well.{p_end}
 {p 4}Version 1.0 to Version 1.01{p_end}
 {p 8 8}- bug fixes in program to get exe name{p_end}
 {p 8 8}- no batch file written anymore; support for MacOS{p_end}

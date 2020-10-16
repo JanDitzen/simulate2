@@ -1,5 +1,5 @@
 *! parallelise simulate2
-*! Version 1.03 - 27.02.2020
+*! Version 1.04 - 07.10.2020
 *! by Jan Ditzen - www.jan.ditzen.net
 /* changelog
 To version 1.01
@@ -14,7 +14,8 @@ To version 1.02
 To version 1.03
 	- 27.02.2020	- improved behaviour for long lines in do files or programs
 					- warning message if no seed set
-
+To version 1.04
+	- 07.10.2020	- added "/" to temppath locals
 
 */
 program psimulate2 , rclass
@@ -209,7 +210,7 @@ program psimulate2 , rclass
 			if "`whichsim'" == "simulate2" {
 				psim2_WriteDofile 	`exp_list' , ///
 									/// sim2 options
-									saving("`temppath'psim2_results_`inst'", replace) reps(`repsi')  ///
+									saving("`temppath'/psim2_results_`inst'", replace) reps(`repsi')  ///
 									perindicator(100, perindicpath(`"`temppath'"') performid(`inst')) ///
 									seed("`seed'" "`seedstartop'") seedsave("`seedsave'") seedstream(`seedstream')	///
 									/// writeBatch options
@@ -220,7 +221,7 @@ program psimulate2 , rclass
 			else {
 				psim2_WriteDofile 	`exp_list' , ///
 									/// sim options
-									saving("`temppath'psim2_results_`inst'", replace) reps(`repsi')  ///
+									saving("`temppath'/psim2_results_`inst'", replace) reps(`repsi')  ///
 									`seed' 	///
 									/// writeBatch options
 									id(`inst')  processors(`processors') simulate ///
@@ -247,7 +248,7 @@ program psimulate2 , rclass
 			forvalues inst = 1(1)`instance' {
 			*	noi disp `"command line to execute: winexec `exepath' `winexec_e' do  "`temppath'psim2_DoFile_`inst'.do" "'
 			*	local lastcmd `"winexec `exepath' `winexec_e' do  "`temppath'psim2_DoFile_`inst'.do" "'
-				winexec `exepath' `winexec_e' do  "`temppath'psim2_DoFile_`inst'.do"
+				winexec `exepath' `winexec_e' do  "`temppath'/psim2_DoFile_`inst'.do"
 			}
 		}
 		else {
@@ -278,8 +279,9 @@ program psimulate2 , rclass
 					cap qui mata mata matuse "`temppath'/psim2_performance_`inst'", replace
 					if _rc != 0 {
 						** build in artifical sleep
-						sleep 500
-						cap qui mata mata matuse "`temppath'/psim2_performance_`inst'", replace
+						noi disp "error in saving psim2_performance_`inst'"
+						sleep 1000
+						***cap qui mata mata matuse "`temppath'/psim2_performance_`inst'", replace
 					}
 					qui mata st_local("done_`inst'",strofreal(p2sim_performance[1,1]))
 					qui mata st_local("reps_`inst'",strofreal(p2sim_performance[1,2]))
@@ -317,7 +319,8 @@ program psimulate2 , rclass
 			noi disp as text ""
 			noi disp "psimulate2 - parallelise `whichsim'"
 			noi disp as text  ""
-			noi disp as text `"command: `after' "'
+			local aftertt = strtrim(`"`after'"'')
+			noi disp as text `"command: `aftertt' "'
 			noi disp as text ""
 			noi disp as text  "Timings (hour, minute, sec):"  _col(40) "Estimated:"
 			noi disp as text  "  Average Run: " _col(24) %tcHH:MM:SS.sss `avg_run' _col(40) "  Time left (min):" _col(60) %tcHH:MM:SS `exp_time_left' 
@@ -388,9 +391,9 @@ program psimulate2 , rclass
 			}
 			*** Collect data
 			clear
-			use "`temppath'psim2_results_1"
+			use "`temppath'/psim2_results_1"
 			forvalues inst = 2(1)`instance' {
-				qui append using "`temppath'psim2_results_`inst'", force
+				qui append using "`temppath'/psim2_results_`inst'", force
 			}
 			
 			if "`saving'" != "" { 
@@ -487,7 +490,7 @@ program define psim2_WriteDofile
 		mata mata memory
 		if `r(Nf_def)' > 0 {
 			lmbuild lpsim2_matafunc , dir(`temppath') replace			
-			file write `dofile' `"adopath + `temppath'"' _n
+			file write `dofile' `"adopath + "`temppath'""' _n
 		}
 		
 		**** Mata programs
