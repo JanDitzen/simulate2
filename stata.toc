@@ -1,3 +1,3 @@
 v 3
-d Jan Ditzen, Heriot-Watt University, j.ditzen@hw.ac.uk, jan.ditzen.net
+d Jan Ditzen, Free University of Bozen-Bolzano, jan.ditzen@unibz.it, jan.ditzen.net
 p simulate2 module enhancing and parallelising Stata's simulate.

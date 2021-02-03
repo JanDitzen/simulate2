@@ -281,7 +281,7 @@ program psimulate2 , rclass
 						** build in artifical sleep
 						noi disp "error in saving psim2_performance_`inst'"
 						sleep 1000
-						***cap qui mata mata matuse "`temppath'/psim2_performance_`inst'", replace
+						cap qui mata mata matuse "`temppath'/psim2_performance_`inst'", replace
 					}
 					qui mata st_local("done_`inst'",strofreal(p2sim_performance[1,1]))
 					qui mata st_local("reps_`inst'",strofreal(p2sim_performance[1,2]))
@@ -402,7 +402,12 @@ program psimulate2 , rclass
 				
 				if "`frame'" != "" {
 					if "`append'" != "" {
-							frame `anything': save "`temppath'/psim2_oldframe", replace	
+							*** check if frame exists
+							frame dir
+							if regexm("`r(frames)'","`anything'") == 0 {
+								frame create `anything'
+							}
+							frame `anything': save "`temppath'/psim2_oldframe", replace	emptyok
 							append using "`temppath'/psim2_oldframe"
 						}
 					cap frame drop `anything'
