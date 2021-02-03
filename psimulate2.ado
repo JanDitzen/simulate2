@@ -1,5 +1,5 @@
 *! parallelise simulate2
-*! Version 1.04 - 07.10.2020
+*! Version 1.04 - 03.02.2021
 *! by Jan Ditzen - www.jan.ditzen.net
 /* changelog
 To version 1.01
@@ -16,6 +16,7 @@ To version 1.03
 					- warning message if no seed set
 To version 1.04
 	- 07.10.2020	- added "/" to temppath locals
+	- 03.02.2021 	- bug fixed if data appended to frame but frame does not exists
 
 */
 program psimulate2 , rclass

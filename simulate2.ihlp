@@ -1,7 +1,7 @@
 {smcl}
 {hline}
 {hi:help simulate2}{right: v. 1.01 - 03. November 2019}
-{hi:help psimulate2}{right: v. 1.03 - 27. February 2020}
+{hi:help psimulate2}{right: v. 1.04 - 03. February 2021}
 {hline}
 {title:Title}
 
