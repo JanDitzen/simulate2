@@ -495,7 +495,11 @@ program define psim2_WriteDofile
 		**** set new ado path to library in do file
 		mata mata memory
 		if `r(Nf_def)' > 0 {
-			lmbuild lpsim2_matafunc , dir(`temppath') replace			
+			cap lmbuild lpsim2_matafunc , dir(`temppath') replace		
+			if _rc != 0 {
+				break 200
+				cap lmbuild lpsim2_matafunc , dir(`temppath') replace	
+			}	
 			file write `dofile' `"adopath + "`temppath'""' _n
 		}
 		
