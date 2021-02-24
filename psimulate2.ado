@@ -497,7 +497,7 @@ program define psim2_WriteDofile
 		if `r(Nf_def)' > 0 {
 			cap lmbuild lpsim2_matafunc , dir(`temppath') replace		
 			if _rc != 0 {
-				break 200
+				sleep 200
 				cap lmbuild lpsim2_matafunc , dir(`temppath') replace	
 			}	
 			file write `dofile' `"adopath + "`temppath'""' _n
