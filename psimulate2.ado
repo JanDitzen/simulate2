@@ -1,5 +1,5 @@
 *! parallelise simulate2
-*! Version 1.04 - 03.02.2021
+*! Version 1.05 - 02.08.2021
 *! by Jan Ditzen - www.jan.ditzen.net
 /* changelog
 To version 1.01
