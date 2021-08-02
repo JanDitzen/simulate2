@@ -17,6 +17,8 @@ To version 1.03
 To version 1.04
 	- 07.10.2020	- added "/" to temppath locals
 	- 03.02.2021 	- bug fixed if data appended to frame but frame does not exists
+To version 1.05
+	- 02.08.2021 	- bug fix in exepath
 
 */
 program psimulate2 , rclass
@@ -98,7 +100,10 @@ program psimulate2 , rclass
 			psim2_getExePath
 			local exepath `"`r(exepath)'"'
 		}
-		
+		else {
+              	local exepath "`exe'"
+              }
+
 		*** Copy mata matrices
 		local matamatsave = 0
 		cap erase "`temppath'/psim2_matamat.mmat"
@@ -679,7 +684,8 @@ program define psim2_programlist, rclass
 							gettoken n1 n2: next
 							if regexm(`"`n1'"',">") == 1 {
 								local rest = strtrim(`"`rest'"')
-								local n2 = strtrim(`"`n2'"')
+								*local n2 = strtrim(`"`n2'"')
+								local n2 = subinstr(`"`n2'"',"  ","",1)
 								file write `dofilenew' `"`macval(rest)'`macval(n2)'"' _n
 								
 								/// now shift both files one line down
