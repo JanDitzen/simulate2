@@ -1,9 +1,5 @@
 *! parallelise simulate2
-<<<<<<< Updated upstream
-*! Version 1.05 - 02.08.2021
-=======
 *! Version 1.06 - 21.01.2022
->>>>>>> Stashed changes
 *! by Jan Ditzen - www.jan.ditzen.net
 /* changelog
 To version 1.01
@@ -23,11 +19,9 @@ To version 1.04
 	- 03.02.2021 	- bug fixed if data appended to frame but frame does not exists
 To version 1.05
 	- 02.08.2021 	- bug fix in exepath
-<<<<<<< Updated upstream
-=======
 To version 1.06
 	- 21.01.2022  - bug fix in temppath
->>>>>>> Stashed changes
+
 
 */
 program psimulate2 , rclass

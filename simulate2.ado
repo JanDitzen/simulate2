@@ -1,11 +1,11 @@
 *! extension of Stata Corp. simulate
-*! Version 1.03 - 21.01.2022
+*! Version 1.06 - 21.01.2022
 *! by Jan Ditzen - www.jan.ditzen.net
 /* changelog
 To version 1.01
 	- 21.10.2019: 	- bug in setting seed options fixed
 	- 02.03.2020:	- bug in setting seed options fixed 2nd
-Tp Version 1.03
+Tp Version 1.06
 	- 21.01.2022:	- fix when simulate2 and seed() used.
 			- added if support
 			- output when psimulate2 used added (internal option inpsim2)
