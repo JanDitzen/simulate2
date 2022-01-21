@@ -5,7 +5,7 @@
 
 __Table of Contents__
 1. [Syntax](#1-syntax)
-2. [Description](#2-descritption)
+2. [Description](#2-description)
 3. [Options](#3-options)
 4. [Examples](#4-examples)
 5. [Problems](#5-problems)
