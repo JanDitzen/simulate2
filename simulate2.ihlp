@@ -1,7 +1,12 @@
 {smcl}
 {hline}
+<<<<<<< Updated upstream
 {hi:help simulate2}{right: v. 1.01 - 03. November 2019}
 {hi:help psimulate2}{right: v. 1.05 - 02. August 2021}
+=======
+{hi:help simulate2}{right: v. 1.03 - 21. January 2022}
+{hi:help psimulate2}{right: v. 1.06 - 21. January 2022}
+>>>>>>> Stashed changes
 {hline}
 {title:Title}
 
@@ -490,11 +495,21 @@ The best solution is to shorten the names.{p_end}
 and Tim Morris at the Stata User group meeting 2019 in London.
 Parts of the program code and help file were taken from {help simulate}.
 Kit Baum initiated the integration of MacOS and Unix and assisted in the implementation. 
+<<<<<<< Updated upstream
 Michael Porst provided much valued feedback.
+=======
+Michael Porst and 
+Gabriel Chodorow-Reich provided much valued feedback.
+>>>>>>> Stashed changes
 I am grateful for all of their help.
 All remaining errors are my own.{p_end}
 
 {title:Change Log}
+<<<<<<< Updated upstream
+=======
+{p 4}Version 1.05 to 1.06{p_end}
+{p 8 8}- various small bug fixes (thanks to Gabriel Chodorow-Reich){p_end}
+>>>>>>> Stashed changes
 {p 4}Version 1.04 to 1.05{p_end}
 {p 8 8}- bug fix in exepath{p_end}
 {p 4}Version 1.03 to 1.04{p_end}
