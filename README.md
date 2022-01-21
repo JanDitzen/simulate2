@@ -1,7 +1,7 @@
 # simulate2 and psimulate2
 
-## simulate2 - enhanced functions for [Stata's simulate](https://www.stata.com/manuals/rsimulate.pdf)
-## psimulate2 - running simulate2 in parallel
+### simulate2 - enhanced functions for [Stata's simulate](https://www.stata.com/manuals/rsimulate.pdf)
+### psimulate2 - running simulate2 in parallel
 
 __Table of Contents__
 1. [Syntax](#1-syntax)
