@@ -1,7 +1,7 @@
 {smcl}
 {hline}
 {hi:help simulate2}{right: v. 1.03 - 21. January 2022}
-{hi:help psimulate2}{right: v. 1.06 - 21. January 2022}
+{hi:help psimulate2}{right: v. 1.04 - 24. January 2022}
 
 {hline}
 {title:Title}
@@ -505,6 +505,8 @@ All remaining errors are my own.{p_end}
 
 {title:Change Log}
 
+{p 4}Version 1.06 to 1.07{p_end}
+{p 8 8}- fix in program lines with more than 250 characters (thanks to Gabriel Chodorow-Reich)
 {p 4}Version 1.05 to 1.06{p_end}
 {p 8 8}- various small bug fixes (thanks to Gabriel Chodorow-Reich){p_end}
 {p 4}Version 1.04 to 1.05{p_end}

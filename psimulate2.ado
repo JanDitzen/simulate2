@@ -1,5 +1,5 @@
 *! parallelise simulate2
-*! Version 1.06 - 21.01.2022
+*! Version 1.07 - 24.01.2022
 *! by Jan Ditzen - www.jan.ditzen.net
 /* changelog
 To version 1.01
@@ -21,6 +21,8 @@ To version 1.05
 	- 02.08.2021 	- bug fix in exepath
 To version 1.06
 	- 21.01.2022  - bug fix in temppath
+To version 1.07
+	- 24.01.2022 	- bug fix if program has more than 250 characters
 
 
 */
@@ -692,7 +694,8 @@ program define psim2_programlist, rclass
 							if regexm(`"`n1'"',">") == 1 {
 								local rest = strtrim(`"`rest'"')
 								*local n2 = strtrim(`"`n2'"')
-								local n2 = subinstr(`"`n2'"',"  ","",1)
+								*local n2 = subinstr(`"`n2'"',"  ","",1)
+								local n2 = strltrim(`"`n2'"')
 								file write `dofilenew' `"`macval(rest)'`macval(n2)'"' _n
 								
 								/// now shift both files one line down

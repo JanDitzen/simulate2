@@ -210,6 +210,8 @@ Web: www.jan.ditzen.net
 simulate2 was inspired by comments from Alan Riley and Tim Morris at the Stata User group meeting 2019 in London.  Parts of the program code and help file were taken from simulate.  Kit Baum initiated the integration of MacOS and Unix and assisted in the implementation.  I am grateful for his help.  All remaining errors are my own.
 
 ## Change Log
+Version 1.05 to 1.06
+- fix in program lines with more than 250 characters (thanks to Gabriel Chodorow-Reich)
 
 Version 1.05 to 1.06
 - various small bug fixes (thanks to Gabriel Chodorow-Reich)
