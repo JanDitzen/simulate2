@@ -1,5 +1,7 @@
 # simulate2 and psimulate2
 
+![version](https://img.shields.io/github/v/release/janditzen/simulate2)  ![release](https://img.shields.io/github/release-date/janditzen/simulate2) 
+
 ### simulate2 - enhanced functions for [Stata's simulate](https://www.stata.com/manuals/rsimulate.pdf)
 ### psimulate2 - running simulate2 in parallel
 
