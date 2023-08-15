@@ -39,7 +39,13 @@ aving(filename, ...) | save results to filename
 seed(options) | control of seed, see  seed options
 seedsave(options) | saves the used seeds, see  saving seeds
 seedstream(integer) | starting seedstream, only psimulate2
-                      
+nocls | do not refresh window (only {cmd:psimulate2})
+onlydots |display dots rather than output window. Recommended for server use.
+docmd(string) | Alterantive command to call do files.
+globalid(string_ | Sets id for simulation run. Necessary if multiple instances of psimulate2 are run on the same machine.
+{synoptline}
+
+                    
 options3 | Description
 --- | ---
 exe(string) | sets the path to the Stata.exe
@@ -107,7 +113,13 @@ seed(options) | controls the random-number seed.  It is possible to set a seed, 
 seed(#) | sets the random-number seed.  If simulate is used in combination with psimulate2, then only seed(#) can be set. Seed streams are automatically assigned. seed(integer1 [string integer3]) sets the seed (integer1), the random-number generator (string) and the seedstream (integer3).  The default for string is the default random-number generator and for integer3 seedstream number 1.
 seedstream(integer) |  is a convience option for psimulate2.  It sets the inital seedstream number for the first instance.  For example if 3 instances are set (parallel(3)) and seedstream(4) is used, then instance 1 will use seed stream number 4, instance 2 stream 5 and instance 3 stream 6.  This function allows the parallel use of psimulate2 on multiple computers with the same starting seed, but different seedstreams.
 seedsave(filename\frame), [frame append seednumber(#)] | Saves the seeds from the beginning of each draw in a dataset defined by filename.  If option frame is used, it saves the seeds in a frame.  append appends the frame or dataset.  seednumber(#) specifies the first value of variable run.  If not specified it is set to 1 and in the case of option append it is set to _N + 1.  In all cases, the number of the draw, state of the random number generator, the type and the stream are saved.
-parallel(#2) | sets the number of parallel Stata instances.  It is advisable not to use more instances than CPU cores are available. parallel(#2, exe(string)) sets the path to the Stata.exe when using psimulate2.  psimulate2 will try to find the path, but might fail if Stata.exe is in a non-conventional folder or has a non-conventional file name. parallel(#2, temppath(string)) sets an alternative path to save temporary files.  psimulate2 saves several do file and .bat files in the temporary folder (C:\Users\jan\AppData\Local\Temp/).  In rare cases Stata might not have read/write rights or it is not possible to start a .bat file from this folder.  In this case temppath() is required.  psimulate2 cleans up the temp folder before using it.  All files starting with psim2_ are removed. parallel(#2, processors(integer)) sets the maximum number of processors each Stata instance is allowed, see set processors.  This is only relevant for Stata MP.  For example if Stata MP with 4 cores is used and two parallel instance of psimulate2, then the remaining two cores can be used for each instance.  The default is 1, meaning that psimulate only one processor is available to each Stata instance.
+parallel(#2) | sets the number of parallel Stata instances.  It is advisable not to use more instances than CPU cores are available. parallel(#2, exe(string)) sets the path to the Stata.exe when using psimulate2.  psimulate2 will try to find the path, but might fail if Stata.exe is in a non-conventional folder or has a non-conventional file name. parallel(#2, temppath(string)) sets an alternative path to save temporary files.  psimulate2 saves several do file and .bat files in the temporary folder.  In rare cases Stata might not have read/write rights or it is not possible to start a .bat file from this folder.  In this case temppath() is required.  psimulate2 cleans up the temp folder before using it.  All files starting with psim2_ are removed. parallel(#2, processors(integer)) sets the maximum number of processors each Stata instance is allowed, see set processors.  This is only relevant for Stata MP.  For example if Stata MP with 4 cores is used and two parallel instance of psimulate2, then the remaining two cores can be used for each instance.  The default is 1, meaning that psimulate only one processor is available to each Stata instance.
+docmd(string) | specifies an alternative command to run do files. For example on a Ubuntu system, {cmd:docmd(stata)} is necessary to start a do file.
+onlydots | instead of the progress window dots are displayed. The option is intended to minimize the size of log files.
+globalid(integer) | Multiple instances of psimulate2 can be run on the same machine. If the same path to save temporary files is used, files may be overwritten. globalid(integer) specifies the number of the parallel instance to avoid files being overwritten.
+
+
+
 
 # 4. Examples
 
@@ -182,12 +194,82 @@ psimulate2 , reps(100) seed(_current) p(2) seedsave(seed, frame): testsimul 200
 
 Using `current` within seed() psimulate2 will use the `current` seed of the parent instance as an initial seed for all child instances.  Each child instance will still have a different seed stream to ensure the random number draws are different.
 
+## 4.1 Example Unix Server
+
+Let's assume we want to run the example above, but we want to run the simulation with 20, 50 100 and 1000 observations. 
+We also want to compare results if errors are standard normal and uniform distributed. 
+Option `uniform` is added to the testsimul program:
+
+```
+program define testsimul, rclass
+    version 18
+    syntax anything, [uniform]
+    clear
+    set obs `anything'
+    gen x = rnormal(1,4)
+    if "`uniform'"== "" gen e = normal()
+    else  gen e = runiform(-1,1)
+    gen y = 2 + 3*x + e
+    reg y x
+    matrix b = e(b)
+    matrix se = e(V)
+    ereturn clear
+    return scalar b = b[1,1]
+    return scalar V = se[1,1]
+    return local time "`c(current_time)'"
+end
+```
+
+We can use a - say Ubuntu - Unix server with a total of 20 cores and we want to use all of them. Stata is installed on the machine and can be started from the command line with the command **stata**. A folder to store temporary files is created in the home directory and called `tmp`.
+
+To run the simulations, we write two do files, one for the DGP with standard normal errors, one for the DGP with uniform errors. The do files are called `spec1.do` and `spec2.do`.
+Both do files include a loop over the set of number of observations and save the simulated results.
+The simulation is repeated 1000 times with 9 parallel instances:
+
+**spec1.do**:
+```
+    clear
+    set seed 12345
+    foreach N in 20 50 100 1000 {
+        psimulate2 , reps(1000) parallel(9, temppath("/home/tmp")) seed(_current) onlydots globalid(1) docmd(stata): testsimul `N' 
+        save res_`N'_spec1
+    }
+```
+
+To run the second specification, we add the option `uniform` and alter the filename of the dataset with the Monte Carlo results.
+
+**spec2.do**:
+```    
+    clear
+    set seed 678910}
+    foreach N in 20 50 100 1000 }
+        psimulate2 , reps(1000) parallel(9, temppath("/home/tmp")) seed(_current) onlydots globalid(2) docmd(stata): testsimul `N' , uniform}
+        save res_`N'_spec2  
+```
+
+The ``spec1.do`` and ``spec2.do`` do files can run on the server at the same time and we make optimal use of the 20 cores.
+Depending on the server, it might be necessary to write a batch file which allocates memory, number of cores and run time for each do file. After the simulations are run, there should be a total of 8 files, 4 for each specification.
+
+
+Next we discuss the options in detail:
+
+
+Option | Description
+ --- | --- 
+parallel(9, temppath("/home/tmp")) | sets the number of parallel instances to 9. Each do file then uses in total 10 cores.
+The option temppath()} specifies the path to save temporary files which needs to be set to be read and writeable.
+seed(_current) | ensures that the seed is altered for the different values. Otherwise the first 20 observations if N=50 would be the same as the observations of the case N=20.
+onlydots | helps to reduce the size of the log files. Instead of an overview of the progress, only dots are displayed.
+globalid() | sets the id for each of the instances of **psimualte2**.  All temporary files are named `psim2#Instance_` and thus it is ensured that no temporary file is overwritten. Alternatively we could specify a temporary path (eg: "/home/tmp/tmp_1") for each do file/specification.
+docmd(stata) | specifies the command a do file is started with from the command line/within Stata. On our Ubuntu server, new do files are started with `"home/dofiles/dofile.do"` and we need to specify the command to do so.
+
+
 # 5. Problems
-- On some Windows installations the temporary folder is locked. In this case Stata and psimulate2 cannot write any files in the temporary folder.  Option temppath() can be used to set an alternative temporary folder.
-
-- psimulate2 can crash if the temporary path or any other path it writes on is in a cloud storage folder from services such as Dropbox, OneDrive or Backup and Sync from Google. A fix is to pause those services.
-
-
+ - On some Windows installations or servers the default temporary folder is locked or not accessible. In this case Stata and psimulate2 cannot write any files in the temporary folder.  Option temppath() can be used to set an alternative temporary folder.
+ - psimulate2 can crash if the temporary path or any other path it writes on is in a cloud storage folder from services such as Dropbox, OneDrive or Backup and Sync from Google. A fix is to pause those services.
+- psimulate2 has problems with long names, such as variable names or command names. In such cases it tends to shorten the names which might cause interruptions in the code.  The best solution is to shorten the names.
+- Unix servers require the nocls function to run psimulate2.
+- The onlydots options should be used with servers tpo avoid large log files.
 
 # 6. How to install
 
@@ -207,9 +289,16 @@ Email: jan.ditzen@unibz.it
 
 Web: www.jan.ditzen.net
 
-simulate2 was inspired by comments from Alan Riley and Tim Morris at the Stata User group meeting 2019 in London.  Parts of the program code and help file were taken from simulate.  Kit Baum initiated the integration of MacOS and Unix and assisted in the implementation.  I am grateful for his help.  All remaining errors are my own.
+simulate2 was inspired by comments from Alan Riley and Tim Morris at the Stata User group meeting 2019 in London.  Parts of the program code and help file were taken from simulate.  Kit Baum initiated the integration of MacOS and Unix and assisted in the implementation.  Michael Porst and Gabriel Chodorow-Reich provided much valued feedback. I am grateful for all of their help.  All remaining errors are my own. I do not take over responsibility for any computer crashes, lost work or financial losses following the use of *(p)simulate2*.
 
 ## Change Log
+
+Version 1.07 to 1.08
+- added options onlydots, docmd() and globalid to improve support for servers
+
+Version 1.06 to 1.07
+- fix in program lines with more than 250 characters (thanks to Gabriel Chodorow-Reich)
+
 Version 1.05 to 1.06
 - fix in program lines with more than 250 characters (thanks to Gabriel Chodorow-Reich)
 
