@@ -226,7 +226,7 @@ program define testsimul, rclass
 end
 ```
 
-We can use a - say Ubuntu - Unix server with a total of 20 cores and we want to use all of them. Stata is installed on the machine and can be started from the command line with the command **stata**. A folder to store temporary files is created in the home directory and called `tmp`.
+We can use an - say Ubuntu - Unix server with a total of 20 cores and we want make use of all of them. Stata is installed on the machine and can be started from the command line with the command **stata**. A folder to store temporary files is created in the home directory and called `tmp`.
 
 To run the simulations, we write two do files, one for the DGP with standard normal errors, one for the DGP with uniform errors. The do files are called `spec1.do` and `spec2.do`.
 Both do files include a loop over the set of number of observations and save the simulated results.
