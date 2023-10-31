@@ -1,7 +1,7 @@
 {smcl}
 {hline}
 {hi:help simulate2}{right: v. 1.03 - 21. January 2022}
-{hi:help psimulate2}{right: v. 1.08 - 15. August 2023}
+{hi:help psimulate2}{right: v. 1.09 - 31. October 2023}
 
 {hline}
 {title:Title}
@@ -618,7 +618,8 @@ I do not take over responsibility for any computer crashes, lost work or financi
 
 
 {title:Change Log}
-
+{p 4}Version 1.08 to 1.09{p_end}
+{p 8 8}- support for Stata BE added{p_end}
 {p 4}Version 1.07 to 1.08{p_end}
 {p 8 8}- added options {cmd:onlydots}, {cmd:docmd()} and {cmd:globalid} to improve support for servers{p_end}
 {p 4}Version 1.06 to 1.07{p_end}

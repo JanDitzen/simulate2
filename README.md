@@ -299,6 +299,9 @@ simulate2 was inspired by comments from Alan Riley and Tim Morris at the Stata U
 
 ## Change Log
 
+Version 1.08 to 1.09
+- added support for Stata BE.
+
 Version 1.07 to 1.08
 - added options onlydots, docmd() and globalid to improve support for servers
 

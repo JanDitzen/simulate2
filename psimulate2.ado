@@ -1,5 +1,5 @@
 *! parallelise simulate2
-*! Version 1.08 - 15.08.2023
+*! Version 1.09 - 31.10.2023
 *! by Jan Ditzen - www.jan.ditzen.net
 /* changelog
 To version 1.01
@@ -26,7 +26,8 @@ To version 1.07
 To version 1.08
 	- 18.07.2023 	- added option onlydots: display only dots for parallel simulate. better for servers
 	- 31.07.2023  - added options docmd() and globalid()
-
+To version 1.08
+	- 31.10.2023 	- support for Stata BE 
 
 */
 program psimulate2 , rclass
@@ -593,13 +594,14 @@ program define psim2_getExePath, rclass
 	else {
 		if "`c(os)'" == "Windows" {							
 			if `c(SE)' == 1 & `c(MP)' == 0 {
-					dlocal type SE
+					local type SE
 			}
 			else if `c(MP)' == 1 {
 					local type MP
 			}
 			else {
-					local type IC
+				if "`c(edition_real)'" == "BE" local type BE
+				else type IC
 			}
 			local exepath "`c(sysdir_stata)'Stata`type'-`c(bit)'.exe"
 			local exename "Stata`type'-`c(bit)'.exe"
